@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蘑菇報名表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-primary">🍄 蘑菇報名系統 🍄</h1>
+        
+        <!-- 原有的 HTML 結構保持不變 -->
+        <!-- (此處省略，保留原本的 HTML 代碼) -->
+    </div>
+
+    <script>
+        // 連接到遠程服務器的 Socket.IO
+        const socket = io('https://mushroom-signup.onrender.com');
+
+        // 其餘的 JavaScript 程式碼保持不變
+        // (此處省略，保留原本的 JavaScript 代碼)
+    </script>
+</body>
+</html>
