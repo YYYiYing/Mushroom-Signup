@@ -1,489 +1,104 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蘑菇報名表</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#5D5CDE',
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 class="text-3xl font-bold text-center mb-8 text-primary">🍄 蘑菇報名系統 🍄</h1>
-        
-        <!-- Role Selection Tabs -->
-        <div class="flex mb-8 border-b border-gray-200 dark:border-gray-700">
-            <button id="poster-tab" class="py-2 px-4 font-medium rounded-t-lg flex-1 bg-primary text-white">發菇者</button>
-            <button id="registrant-tab" class="py-2 px-4 font-medium rounded-t-lg flex-1 bg-gray-200 dark:bg-gray-700">報名者</button>
-        </div>
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, 
+  Form, 
+  Button, 
+  Card, 
+  Dropdown, 
+  Modal 
+} from 'react-bootstrap';
 
-        <!-- Poster Form Section -->
-        <div id="poster-section" class="mb-8">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">發布新蘑菇</h2>
-                <form id="mushroom-form" class="space-y-4">
-                    <div>
-                        <label for="poster-name" class="block text-sm font-medium mb-1">您的名字</label>
-                        <input type="text" id="poster-name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1">時段</label>
-                        <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="time-slot" value="宵夜" class="mr-2" checked>
-                                <span>宵夜</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="time-slot" value="早餐" class="mr-2">
-                                <span>早餐</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="mushroom-type" class="block text-sm font-medium mb-1">蘑菇種類</label>
-                        <select id="mushroom-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                            <option value="巨菇">巨菇</option>
-                            <option value="活動菇">活動菇</option>
-                            <option value="晶">晶</option>
-                            <option value="水">水</option>
-                            <option value="火">火</option>
-                            <option value="電">電</option>
-                            <option value="毒">毒</option>
-                            <option value="大晶">大晶</option>
-                            <option value="大火">大火</option>
-                            <option value="大水">大水</option>
-                            <option value="大電">大電</option>
-                            <option value="大毒">大毒</option>
-                            <option value="大紅">大紅</option>
-                            <option value="大黃">大黃</option>
-                            <option value="大藍">大藍</option>
-                            <option value="大紫">大紫</option>
-                            <option value="大粉">大粉</option>
-                            <option value="大灰">大灰</option>
-                            <option value="大白">大白</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label for="max-registrants" class="block text-sm font-medium mb-1">可接受報名人數 (1-4)</label>
-                        <input type="number" id="max-registrants" min="1" max="4" value="4" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                    </div>
-                    
-                    <button type="submit" class="w-full py-2 px-4 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition duration-300">發布蘑菇</button>
-                </form>
-            </div>
-            
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold mb-4">已發布的蘑菇</h2>
-                <div id="mushroom-list" class="space-y-4">
-                    <!-- Mushroom items will be added here -->
-                    <p id="empty-poster-message" class="text-gray-500 dark:text-gray-400 text-center">目前尚未發布任何蘑菇</p>
-                </div>
-            </div>
-        </div>
+// 蘑菇類型常數
+const MUSHROOM_TYPES = [
+  '巨菇', '活動菇', '大晶', '大火', '大水', 
+  '大電', '大毒', '大紅', '大黃', '大藍', 
+  '大紫', '大粉', '大灰', '大白', '晶', 
+  '水', '火', '電', '毒'
+];
 
-        <!-- Registrant Section -->
-        <div id="registrant-section" class="hidden">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">報名者資訊</h2>
-                <form id="registrant-form" class="space-y-4">
-                    <div>
-                        <label for="registrant-name" class="block text-sm font-medium mb-1">您的名字</label>
-                        <input type="text" id="registrant-name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                    </div>
-                    <button type="submit" class="w-full py-2 px-4 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition duration-300">登入</button>
-                </form>
-            </div>
-            
-            <div id="available-mushrooms-section" class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-semibold">可報名的蘑菇</h2>
-                    <div>
-                        <span class="text-sm font-medium">已報名次數: </span>
-                        <span id="registration-count" class="text-sm font-medium">0</span>
-                        <span class="text-sm font-medium">/3</span>
-                    </div>
-                </div>
-                <div id="available-mushrooms" class="space-y-4">
-                    <!-- Available mushrooms will be added here -->
-                    <p id="empty-available-message" class="text-gray-500 dark:text-gray-400 text-center">目前尚無可報名的蘑菇</p>
-                </div>
-            </div>
-        </div>
-    </div>
+// 使用者介面
+interface User {
+  id: string;
+  username: string;
+  remainingChallenges: number;
+}
 
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h2 class="text-xl font-semibold mb-4">編輯蘑菇</h2>
-            <form id="edit-form" class="space-y-4">
-                <input type="hidden" id="edit-id">
-                <div>
-                    <label for="edit-poster-name" class="block text-sm font-medium mb-1">發菇者名字</label>
-                    <input type="text" id="edit-poster-name" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium mb-1">時段</label>
-                    <div class="flex space-x-4">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="edit-time-slot" value="宵夜" class="mr-2">
-                            <span>宵夜</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="edit-time-slot" value="早餐" class="mr-2">
-                            <span>早餐</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div>
-                    <label for="edit-mushroom-type" class="block text-sm font-medium mb-1">蘑菇種類</label>
-                    <select id="edit-mushroom-type" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                        <option value="巨菇">巨菇</option>
-                        <option value="活動菇">活動菇</option>
-                        <option value="晶">晶</option>
-                        <option value="水">水</option>
-                        <option value="火">火</option>
-                        <option value="電">電</option>
-                        <option value="毒">毒</option>
-                        <option value="大晶">大晶</option>
-                        <option value="大火">大火</option>
-                        <option value="大水">大水</option>
-                        <option value="大電">大電</option>
-                        <option value="大毒">大毒</option>
-                        <option value="大紅">大紅</option>
-                        <option value="大黃">大黃</option>
-                        <option value="大藍">大藍</option>
-                        <option value="大紫">大紫</option>
-                        <option value="大粉">大粉</option>
-                        <option value="大灰">大灰</option>
-                        <option value="大白">大白</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label for="edit-max-registrants" class="block text-sm font-medium mb-1">可接受報名人數 (1-4)</label>
-                    <input type="number" id="edit-max-registrants" min="1" max="4" value="4" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-base" required>
-                </div>
-                
-                <div class="flex space-x-4">
-                    <button type="button" id="close-modal" class="flex-1 py-2 px-4 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-medium rounded-md transition duration-300">取消</button>
-                    <button type="submit" class="flex-1 py-2 px-4 bg-primary hover:bg-opacity-90 text-white font-medium rounded-md transition duration-300">儲存</button>
-                </div>
-            </form>
-        </div>
-    </div>
+// 報名活動介面
+interface MushroomEvent {
+  id: string;
+  publisherName: string;
+  mushroomType: string;
+  openTime: Date;
+  maxParticipants: number;
+  participants: Array<{
+    username: string;
+    registrationTime: Date;
+  }>;
+}
 
-    <script>
-        // Check for dark mode
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
+const MushroomSignupSystem: React.FC = () => {
+  // 狀態管理
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [events, setEvents] = useState<MushroomEvent[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState(true);
+  const [showCreateEventModal, setShowCreateEventModal] = useState(false);
 
-        // Data storage
-        let mushrooms = [];
-        let currentRegistrantName = '';
-        let registrationCountByUser = {};
+  // 登入邏輯
+  const handleLogin = (username: string) => {
+    const existingUser = users.find(u => u.username === username);
+    if (existingUser) {
+      setCurrentUser(existingUser);
+    } else {
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        username,
+        remainingChallenges: 3
+      };
+      setUsers([...users, newUser]);
+      setCurrentUser(newUser);
+    }
+    setShowLoginModal(false);
+  };
 
-        // Element references
-        const posterTab = document.getElementById('poster-tab');
-        const registrantTab = document.getElementById('registrant-tab');
-        const posterSection = document.getElementById('poster-section');
-        const registrantSection = document.getElementById('registrant-section');
-        const mushroomForm = document.getElementById('mushroom-form');
-        const mushroomList = document.getElementById('mushroom-list');
-        const emptyPosterMessage = document.getElementById('empty-poster-message');
-        const registrantForm = document.getElementById('registrant-form');
-        const availableMushroomsSection = document.getElementById('available-mushrooms-section');
-        const availableMushrooms = document.getElementById('available-mushrooms');
-        const emptyAvailableMessage = document.getElementById('empty-available-message');
-        const registrationCountElement = document.getElementById('registration-count');
-        const editModal = document.getElementById('edit-modal');
-        const editForm = document.getElementById('edit-form');
-        const closeModalButton = document.getElementById('close-modal');
+  // 建立報名活動
+  const createEvent = (event: Omit<MushroomEvent, 'id' | 'participants'>) => {
+    const newEvent: MushroomEvent = {
+      id: `event_${Date.now()}`,
+      ...event,
+      participants: []
+    };
+    setEvents([...events, newEvent]);
+    setShowCreateEventModal(false);
+  };
 
-        // Tab switching
-        posterTab.addEventListener('click', () => {
-            posterTab.classList.add('bg-primary', 'text-white');
-            posterTab.classList.remove('bg-gray-200', 'dark:bg-gray-700');
-            registrantTab.classList.remove('bg-primary', 'text-white');
-            registrantTab.classList.add('bg-gray-200', 'dark:bg-gray-700');
-            posterSection.classList.remove('hidden');
-            registrantSection.classList.add('hidden');
-        });
+  // 報名活動
+  const registerForEvent = (eventId: string) => {
+    // 實作報名邏輯
+    // 檢查時間、人數等限制
+  };
 
-        registrantTab.addEventListener('click', () => {
-            registrantTab.classList.add('bg-primary', 'text-white');
-            registrantTab.classList.remove('bg-gray-200', 'dark:bg-gray-700');
-            posterTab.classList.remove('bg-primary', 'text-white');
-            posterTab.classList.add('bg-gray-200', 'dark:bg-gray-700');
-            registrantSection.classList.remove('hidden');
-            posterSection.classList.add('hidden');
-        });
+  return (
+    <Container>
+      {/* 登入彈窗 */}
+      <Modal show={showLoginModal} onHide={() => {}}>
+        {/* 登入表單 */}
+      </Modal>
 
-        // Add new mushroom
-        mushroomForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const posterName = document.getElementById('poster-name').value;
-            const timeSlot = document.querySelector('input[name="time-slot"]:checked').value;
-            const mushroomType = document.getElementById('mushroom-type').value;
-            const maxRegistrants = parseInt(document.getElementById('max-registrants').value);
-            
-            const newMushroom = {
-                id: Date.now().toString(),
-                posterName,
-                timeSlot,
-                mushroomType,
-                maxRegistrants,
-                registrants: []
-            };
-            
-            mushrooms.push(newMushroom);
-            updateMushroomList();
-            mushroomForm.reset();
-            document.getElementById('poster-name').value = posterName; // Keep the poster name
-            document.getElementById('max-registrants').value = "4"; // Reset to default
-        });
+      {/* 建立報名活動彈窗 */}
+      <Modal show={showCreateEventModal} onHide={() => setShowCreateEventModal(false)}>
+        {/* 建立報名表單 */}
+      </Modal>
 
-        // Update mushroom list
-        function updateMushroomList() {
-            if (mushrooms.length === 0) {
-                emptyPosterMessage.classList.remove('hidden');
-            } else {
-                emptyPosterMessage.classList.add('hidden');
-            }
-            
-            mushroomList.innerHTML = mushrooms.map(mushroom => `
-                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                        <div class="mb-2 sm:mb-0">
-                            <span class="font-medium">${mushroom.mushroomType}</span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">${mushroom.timeSlot}</span>
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                            發菇者: ${mushroom.posterName}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="text-sm mb-1">報名人數: ${mushroom.registrants.length}/${mushroom.maxRegistrants}</div>
-                        <div class="text-sm">
-                            ${mushroom.registrants.length > 0 
-                                ? `已報名: ${mushroom.registrants.join(', ')}` 
-                                : '尚無人報名'}
-                        </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="edit-button py-1 px-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-sm transition duration-300" data-id="${mushroom.id}">編輯</button>
-                        <button class="delete-button py-1 px-3 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition duration-300" data-id="${mushroom.id}">刪除</button>
-                    </div>
-                </div>
-            `).join('') + (mushrooms.length === 0 ? '<p class="text-gray-500 dark:text-gray-400 text-center">目前尚未發布任何蘑菇</p>' : '');
-            
-            // Add event listeners for edit and delete buttons
-            document.querySelectorAll('.edit-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const mushroomId = e.target.dataset.id;
-                    openEditModal(mushroomId);
-                });
-            });
-            
-            document.querySelectorAll('.delete-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const mushroomId = e.target.dataset.id;
-                    mushrooms = mushrooms.filter(m => m.id !== mushroomId);
-                    updateMushroomList();
-                    updateAvailableMushrooms();
-                });
-            });
-            
-            updateAvailableMushrooms();
-        }
+      {/* 報名清單 */}
+      <Card>
+        <Card.Header>蘑菇報名清單</Card.Header>
+        <Card.Body>
+          {/* 顯示報名活動 */}
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+};
 
-        // Edit mushroom
-        function openEditModal(mushroomId) {
-            const mushroom = mushrooms.find(m => m.id === mushroomId);
-            if (!mushroom) return;
-            
-            document.getElementById('edit-id').value = mushroom.id;
-            document.getElementById('edit-poster-name').value = mushroom.posterName;
-            document.querySelectorAll('input[name="edit-time-slot"]').forEach(radio => {
-                if (radio.value === mushroom.timeSlot) {
-                    radio.checked = true;
-                }
-            });
-            document.getElementById('edit-mushroom-type').value = mushroom.mushroomType;
-            document.getElementById('edit-max-registrants').value = mushroom.maxRegistrants;
-            
-            editModal.classList.remove('hidden');
-        }
-
-        closeModalButton.addEventListener('click', () => {
-            editModal.classList.add('hidden');
-        });
-
-        editForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const mushroomId = document.getElementById('edit-id').value;
-            const mushroom = mushrooms.find(m => m.id === mushroomId);
-            if (!mushroom) return;
-            
-            mushroom.posterName = document.getElementById('edit-poster-name').value;
-            mushroom.timeSlot = document.querySelector('input[name="edit-time-slot"]:checked').value;
-            mushroom.mushroomType = document.getElementById('edit-mushroom-type').value;
-            const newMaxRegistrants = parseInt(document.getElementById('edit-max-registrants').value);
-            
-            // If new maxRegistrants is less than current registrants length, trim the registrants list
-            if (newMaxRegistrants < mushroom.registrants.length) {
-                // Update registration counts for removed users
-                const removedUsers = mushroom.registrants.slice(newMaxRegistrants);
-                removedUsers.forEach(user => {
-                    if (registrationCountByUser[user]) {
-                        registrationCountByUser[user]--;
-                        if (registrationCountByUser[user] <= 0) {
-                            delete registrationCountByUser[user];
-                        }
-                    }
-                });
-                
-                mushroom.registrants = mushroom.registrants.slice(0, newMaxRegistrants);
-            }
-            
-            mushroom.maxRegistrants = newMaxRegistrants;
-            
-            updateMushroomList();
-            editModal.classList.add('hidden');
-        });
-
-        // Registrant form
-        registrantForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            currentRegistrantName = document.getElementById('registrant-name').value;
-            registrationCountByUser[currentRegistrantName] = registrationCountByUser[currentRegistrantName] || 0;
-            
-            registrantForm.classList.add('hidden');
-            availableMushroomsSection.classList.remove('hidden');
-            
-            updateAvailableMushrooms();
-            updateRegistrationCount();
-        });
-
-        function updateRegistrationCount() {
-            const count = registrationCountByUser[currentRegistrantName] || 0;
-            registrationCountElement.textContent = count;
-        }
-
-        function updateAvailableMushrooms() {
-            if (!currentRegistrantName) return;
-            
-            const availableMushrooms = mushrooms.filter(m => m.registrants.length < m.maxRegistrants);
-            
-            if (availableMushrooms.length === 0) {
-                emptyAvailableMessage.classList.remove('hidden');
-                document.getElementById('available-mushrooms').innerHTML = '';
-            } else {
-                emptyAvailableMessage.classList.add('hidden');
-                
-                document.getElementById('available-mushrooms').innerHTML = availableMushrooms.map(mushroom => `
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                            <div class="mb-2 sm:mb-0">
-                                <span class="font-medium">${mushroom.mushroomType}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">${mushroom.timeSlot}</span>
-                            </div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                發菇者: ${mushroom.posterName}
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="text-sm mb-1">報名人數: ${mushroom.registrants.length}/${mushroom.maxRegistrants}</div>
-                            <div class="text-sm">
-                                ${mushroom.registrants.length > 0 
-                                    ? `已報名: ${mushroom.registrants.join(', ')}` 
-                                    : '尚無人報名'}
-                            </div>
-                        </div>
-                        <button class="register-button w-full py-2 px-4 ${(registrationCountByUser[currentRegistrantName] || 0) >= 3 ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-opacity-90'} text-white font-medium rounded-md transition duration-300" 
-                            data-id="${mushroom.id}" 
-                            ${(registrationCountByUser[currentRegistrantName] || 0) >= 3 ? 'disabled' : ''}>
-                            ${(registrationCountByUser[currentRegistrantName] || 0) >= 3 ? '今日報名次數已用盡' : '報名此蘑菇'}
-                        </button>
-                    </div>
-                `).join('');
-                
-                // Add event listeners for register buttons
-                document.querySelectorAll('.register-button').forEach(button => {
-                    if (!(registrationCountByUser[currentRegistrantName] >= 3)) {
-                        button.addEventListener('click', (e) => {
-                            const mushroomId = e.target.dataset.id;
-                            registerForMushroom(mushroomId);
-                        });
-                    }
-                });
-            }
-        }
-
-        function registerForMushroom(mushroomId) {
-            if ((registrationCountByUser[currentRegistrantName] || 0) >= 3) {
-                showNotification('您今日的報名次數已用盡');
-                return;
-            }
-            
-            const mushroom = mushrooms.find(m => m.id === mushroomId);
-            if (!mushroom) return;
-            
-            if (mushroom.registrants.length >= mushroom.maxRegistrants) {
-                showNotification('此蘑菇已額滿');
-                return;
-            }
-            
-            if (mushroom.registrants.includes(currentRegistrantName)) {
-                showNotification('您已報名此蘑菇');
-                return;
-            }
-            
-            mushroom.registrants.push(currentRegistrantName);
-            registrationCountByUser[currentRegistrantName] = (registrationCountByUser[currentRegistrantName] || 0) + 1;
-            
-            updateMushroomList();
-            updateAvailableMushrooms();
-            updateRegistrationCount();
-            
-            showNotification('報名成功！');
-        }
-
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-md shadow-lg transition-opacity duration-500';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 500);
-            }, 3000);
-        }
-
-        // Initialize
-        updateMushroomList();
-    </script>
-</body>
-</html>
+export default MushroomSignupSystem;
