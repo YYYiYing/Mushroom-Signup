@@ -1,64 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>蘑菇報名表</title>
-    <style>
-        /* 您可以自行添加樣式 */
-    </style>
+  <title>蘑菇報名表</title>
+  <style>
+    /* CSS 樣式 */
+  </style>
 </head>
 <body>
-    <h1>蘑菇報名表</h1>
+  <div id="login-section">
+    <select id="user-select"></select>
+    <input type="text" id="new-username" placeholder="輸入新名稱">
+    <button id="login-button">登入/建立</button>
+    <div id="challenge-display"></div>
+  </div>
 
-    <div id="login-section">
-        <h2>登入</h2>
-        <select id="user-select">
-            <option value="">選擇使用者</option>
-        </select>
-        <input type="text" id="new-user-input" placeholder="或輸入新使用者名稱">
-        <button id="login-button">登入/建立</button>
-        <p>剩餘挑戰次數：<span id="challenge-count"></span></p>
-        <input type="number" id="challenge-edit" min="0" max="3" value="">
-        <button id="challenge-edit-button">修改剩餘挑戰次數</button>
-    </div>
+  <div id="signup-form" style="display: none;">
+    <input type="text" id="publisher" placeholder="發布者">
+    <select id="mushroom-type"></select>
+    <input type="datetime-local" id="open-time">
+    <input type="number" id="signup-limit" placeholder="報名人數">
+    <button id="create-signup-button">建立報名</button>
+  </div>
 
-    <div id="publish-section" style="display: none;">
-        <h2>發布報名</h2>
-        <input type="text" id="publisher-input" placeholder="發布者">
-        <select id="mushroom-type-select">
-            <option value="">選擇蘑菇類型</option>
-            <option value="巨菇">巨菇</option>
-            <option value="活動菇">活動菇</option>
-            <option value="大晶">大晶</option>
-            <option value="大火">大火</option>
-            <option value="大水">大水</option>
-            <option value="大電">大電</option>
-            <option value="大毒">大毒</option>
-            <option value="大紅">大紅</option>
-            <option value="大黃">大黃</option>
-            <option value="大藍">大藍</option>
-            <option value="大紫">大紫</option>
-            <option value="大粉">大粉</option>
-            <option value="大灰">大灰</option>
-            <option value="大白">大白</option>
-            <option value="晶">晶</option>
-            <option value="水">水</option>
-            <option value="火">火</option>
-            <option value="電">電</option>
-            <option value="毒">毒</option>
-        </select>
-        <input type="datetime-local" id="open-time-input">
-        <input type="number" id="max-players-input" min="1" max="4" value="4">
-        <button id="publish-button">發布</button>
-    </div>
+  <button id="show-signup-form">建立報名</button>
 
-    <div id="signup-list">
-        <h2>報名清單</h2>
-        <ul id="signup-items">
-            </ul>
-    </div>
+  <div id="signup-list"></div>
 
-    <button id="refresh-button">刷新</button>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
