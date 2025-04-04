@@ -1,21 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>報名表</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        button.delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
 <form id="mushroomForm">
-  <label for="name">姓名：</label>
-  <input type="text" id="name" name="name" required><br><br>
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name" required><br><br>
 
-  <label for="phone">電話：</label>
-  <input type="tel" id="phone" name="phone" required><br><br>
+    <label for="phone">電話：</label>
+    <input type="tel" id="phone" name="phone" required><br><br>
 
-  <label for="email">電子郵件：</label>
-  <input type="email" id="email" name="email" required><br><br>
+    <label for="email">電子郵件：</label>
+    <input type="email" id="email" name="email" required><br><br>
 
-  <label for="item">報名項目：</label>
-  <select id="item" name="item">
-    <option value="item1">項目一</option>
-    <option value="item2">項目二</option>
-    <option value="item3">項目三</option>
-  </select><br><br>
+    <label for="item">報名項目：</label>
+    <select id="item" name="item">
+        <option value="item1">項目一</option>
+        <option value="item2">項目二</option>
+        <option value="item3">項目三</option>
+    </select><br><br>
 
-  <button type="submit">送出報名</button>
+    <button type="submit">送出報名</button>
 </form>
 
+<h2>已報名資料</h2>
+<table id="registrationTable">
+    <thead>
+        <tr>
+            <th>姓名</th>
+            <th>電話</th>
+            <th>電子郵件</th>
+            <th>報名項目</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        </tbody>
+</table>
+
 <script src="script.js"></script>
+
+</body>
+</html>
