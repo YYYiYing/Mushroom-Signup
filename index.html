@@ -1,32 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>蘑菇報名表</title>
-  <style>
-    /* CSS 樣式 */
-  </style>
-</head>
-<body>
-  <div id="login-section">
-    <select id="user-select"></select>
-    <input type="text" id="new-username" placeholder="輸入新名稱">
-    <input type="number" id="remain-challenge" placeholder="剩餘挑戰次數 (0-3)" min="0" max="3" value="3">
-    <button id="login-button">登入/建立</button>
-    <div id="challenge-display"></div>
-  </div>
+<form id="mushroomForm">
+  <label for="name">姓名：</label>
+  <input type="text" id="name" name="name" required><br><br>
 
-  <div id="signup-form" style="display: none;">
-    <input type="text" id="publisher" placeholder="發布者">
-    <select id="mushroom-type"></select>
-    <input type="datetime-local" id="open-time">
-    <input type="number" id="signup-limit" placeholder="報名人數">
-    <button id="create-signup-button">建立報名</button>
-  </div>
+  <label for="phone">電話：</label>
+  <input type="tel" id="phone" name="phone" required><br><br>
 
-  <button id="show-signup-form">建立報名</button>
+  <label for="email">電子郵件：</label>
+  <input type="email" id="email" name="email" required><br><br>
 
-  <div id="signup-list"></div>
+  <label for="item">報名項目：</label>
+  <select id="item" name="item">
+    <option value="item1">項目一</option>
+    <option value="item2">項目二</option>
+    <option value="item3">項目三</option>
+  </select><br><br>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <button type="submit">送出報名</button>
+</form>
