@@ -235,7 +235,7 @@
         // 從Google Sheets獲取使用者列表
         const fetchUsers = async () => {
           try {
-            const response = await fetch('你的Google Apps Script Web App URL?action=getUsers');
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec?action=getUsers');
             const data = await response.json();
             users.value = data;
           } catch (error) {
@@ -246,7 +246,7 @@
         // 從Google Sheets獲取報名列表
         const fetchEvents = async () => {
           try {
-            const response = await fetch('你的Google Apps Script Web App URL');
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec');
             const data = await response.json();
             events.value = data;
           } catch (error) {
@@ -276,7 +276,7 @@
           }
           
           try {
-            const response = await fetch('你的Google Apps Script Web App URL', {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -308,7 +308,7 @@
           if (!currentUser.value) return;
           
           try {
-            const response = await fetch('你的Google Apps Script Web App URL', {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -344,7 +344,7 @@
           }
           
           try {
-            const response = await fetch('你的Google Apps Script Web App URL', {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -390,7 +390,7 @@
           }
           
           try {
-            const response = await fetch('你的Google Apps Script Web App URL', {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxqIhv6HGkrqF9-BV1L8y0L_ctTxeKnU7vMzB3EqkjKryv3mLZbszsaa-b0jIfjTpU1ww/exec', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
