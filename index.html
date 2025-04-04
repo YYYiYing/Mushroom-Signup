@@ -1,69 +1,485 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <title>報名表</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 80%;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        button.delete-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蘑菇報名表</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  <style>
+    .event-card {
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+    .event-card.full {
+      opacity: 0.7;
+      background-color: #f8f9fa;
+    }
+    .event-card .progress {
+      height: 10px;
+    }
+    .mushroom-icon {
+      width: 30px;
+      height: 30px;
+      margin-right: 5px;
+    }
+  </style>
 </head>
 <body>
+  <div class="container py-4" id="app">
+    <h1 class="text-center mb-4">蘑菇報名表</h1>
+    
+    <!-- 登入區 -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        使用者登入
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="userSelect" class="form-label">選擇現有使用者</label>
+            <select class="form-select" id="userSelect" v-model="selectedUser" @change="loadUserInfo">
+              <option value="">-- 請選擇 --</option>
+              <option v-for="user in users" :value="user.name">{{ user.name }} (剩餘 {{ user.attempts }} 次)</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="newUser" class="form-label">或輸入新使用者名稱</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="newUser" v-model="newUserName">
+              <button class="btn btn-outline-secondary" type="button" @click="createNewUser">建立</button>
+            </div>
+          </div>
+          <div class="col-md-6" v-if="currentUser">
+            <label for="remainingAttempts" class="form-label">剩餘挑戰次數</label>
+            <input type="number" class="form-control" id="remainingAttempts" min="0" max="3" 
+                   v-model="currentUser.remainingAttempts" @change="updateUserAttempts">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 報名表單 -->
+    <div class="card mb-4" v-if="currentUser">
+      <div class="card-header bg-success text-white">
+        發布新蘑菇報名
+      </div>
+      <div class="card-body">
+        <form @submit.prevent="createEvent">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="publisher" class="form-label">發布者</label>
+              <select class="form-select" id="publisher" v-model="eventForm.publisher" required>
+                <option v-for="user in users" :value="user.name">{{ user.name }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="mushroomType" class="form-label">蘑菇類型</label>
+              <select class="form-select" id="mushroomType" v-model="eventForm.type" required>
+                <option v-for="type in mushroomTypes" :value="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="eventTime" class="form-label">開放報名時間</label>
+              <input type="datetime-local" class="form-control" id="eventTime" v-model="eventForm.time" required>
+            </div>
+            <div class="col-md-6">
+              <label for="maxParticipants" class="form-label">接受報名人數</label>
+              <input type="number" class="form-control" id="maxParticipants" min="1" max="4" 
+                     v-model="eventForm.max" required>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-success">發布報名</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- 報名列表 -->
+    <div class="card">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <span>報名清單</span>
+        <button class="btn btn-sm btn-light" @click="fetchEvents">
+          <i class="bi bi-arrow-clockwise"></i> 刷新
+        </button>
+      </div>
+      <div class="card-body">
+        <div v-if="events.length === 0" class="text-center py-4">
+          <p>目前無報名資訊</p>
+        </div>
+        
+        <!-- 開放中的報名 -->
+        <div v-for="event in openEvents" :key="event.publisher + event.type + event.time" 
+             class="event-card card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge bg-primary me-2">{{ event.type }}</span>
+              <strong>{{ event.publisher }}</strong>
+            </div>
+            <small>{{ formatTime(event.time) }}</small>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>已報名: {{ event.participants.length }}/{{ event.max }}</span>
+              <button v-if="canJoin(event)" class="btn btn-sm btn-primary" @click="joinEvent(event)">
+                報名
+              </button>
+            </div>
+            <div class="progress mb-3">
+              <div class="progress-bar" role="progressbar" 
+                   :style="{ width: (event.participants.length / event.max * 100) + '%' }"></div>
+            </div>
+            <ul class="list-group list-group-flush">
+              <li v-for="(participant, index) in event.participants" 
+                  class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ participant }}</span>
+                <small class="text-muted">{{ formatJoinTime(event.joinTimes[index]) }}</small>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- 已額滿的報名 -->
+        <h5 v-if="fullEvents.length > 0" class="mt-4 mb-3">已額滿</h5>
+        <div v-for="event in fullEvents" :key="event.publisher + event.type + event.time" 
+             class="event-card card full">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge bg-secondary me-2">{{ event.type }}</span>
+              <strong>{{ event.publisher }}</strong>
+            </div>
+            <small>{{ formatTime(event.time) }}</small>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>已報名: {{ event.participants.length }}/{{ event.max }}</span>
+              <span class="badge bg-danger">已額滿</span>
+            </div>
+            <div class="progress mb-3">
+              <div class="progress-bar bg-secondary" role="progressbar" 
+                   :style="{ width: '100%' }"></div>
+            </div>
+            <ul class="list-group list-group-flush">
+              <li v-for="(participant, index) in event.participants" 
+                  class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ participant }}</span>
+                <small class="text-muted">{{ formatJoinTime(event.joinTimes[index]) }}</small>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<form id="mushroomForm">
-    <label for="name">姓名：</label>
-    <input type="text" id="name" name="name" required><br><br>
-
-    <label for="phone">電話：</label>
-    <input type="tel" id="phone" name="phone" required><br><br>
-
-    <label for="email">電子郵件：</label>
-    <input type="email" id="email" name="email" required><br><br>
-
-    <label for="item">報名項目：</label>
-    <select id="item" name="item">
-        <option value="item1">項目一</option>
-        <option value="item2">項目二</option>
-        <option value="item3">項目三</option>
-    </select><br><br>
-
-    <button type="submit">送出報名</button>
-</form>
-
-<h2>已報名資料</h2>
-<table id="registrationTable">
-    <thead>
-        <tr>
-            <th>姓名</th>
-            <th>電話</th>
-            <th>電子郵件</th>
-            <th>報名項目</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        </tbody>
-</table>
-
-<script src="script.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+    
+    createApp({
+      setup() {
+        // 蘑菇類型選項
+        const mushroomTypes = ref([
+          '巨菇', '活動菇', '大晶', '大火', '大水', '大電', '大毒', 
+          '大紅', '大黃', '大藍', '大紫', '大粉', '大灰', '大白', 
+          '晶', '水', '火', '電', '毒'
+        ]);
+        
+        // 使用者相關狀態
+        const users = ref([]);
+        const selectedUser = ref('');
+        const newUserName = ref('');
+        const currentUser = ref(null);
+        
+        // 報名表單
+        const eventForm = ref({
+          publisher: '',
+          type: '巨菇',
+          time: '',
+          max: 4
+        });
+        
+        // 報名列表
+        const events = ref([]);
+        
+        // 計算屬性：開放中的報名
+        const openEvents = computed(() => {
+          return events.value
+            .filter(e => e.status === '開放中')
+            .sort((a, b) => b.participants.length - a.participants.length);
+        });
+        
+        // 計算屬性：已額滿的報名
+        const fullEvents = computed(() => {
+          return events.value
+            .filter(e => e.status === '已額滿')
+            .sort((a, b) => new Date(b.time) - new Date(a.time));
+        });
+        
+        // 初始化時間選擇器
+        const initDateTimePicker = () => {
+          flatpickr("#eventTime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "zh_tw",
+            minDate: "today",
+            defaultDate: new Date()
+          });
+        };
+        
+        // 從Google Sheets獲取使用者列表
+        const fetchUsers = async () => {
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL?action=getUsers');
+            const data = await response.json();
+            users.value = data;
+          } catch (error) {
+            console.error('獲取使用者列表失敗:', error);
+          }
+        };
+        
+        // 從Google Sheets獲取報名列表
+        const fetchEvents = async () => {
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL');
+            const data = await response.json();
+            events.value = data;
+          } catch (error) {
+            console.error('獲取報名列表失敗:', error);
+          }
+        };
+        
+        // 載入使用者資訊
+        const loadUserInfo = () => {
+          if (!selectedUser.value) return;
+          
+          const user = users.value.find(u => u.name === selectedUser.value);
+          if (user) {
+            currentUser.value = {
+              name: user.name,
+              remainingAttempts: user.attempts
+            };
+            eventForm.value.publisher = user.name;
+          }
+        };
+        
+        // 創建新使用者
+        const createNewUser = async () => {
+          if (!newUserName.value.trim()) {
+            alert('請輸入使用者名稱');
+            return;
+          }
+          
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'updateUser',
+                username: newUserName.value,
+                remainingAttempts: 3
+              })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+              await fetchUsers();
+              selectedUser.value = newUserName.value;
+              loadUserInfo();
+              newUserName.value = '';
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error('創建使用者失敗:', error);
+            alert('創建使用者失敗');
+          }
+        };
+        
+        // 更新使用者挑戰次數
+        const updateUserAttempts = async () => {
+          if (!currentUser.value) return;
+          
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'updateUser',
+                username: currentUser.value.name,
+                remainingAttempts: currentUser.value.remainingAttempts
+              })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+              await fetchUsers();
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error('更新挑戰次數失敗:', error);
+          }
+        };
+        
+        // 創建新報名
+        const createEvent = async () => {
+          if (!currentUser.value) {
+            alert('請先登入');
+            return;
+          }
+          
+          if (currentUser.value.remainingAttempts <= 0) {
+            alert('您的挑戰次數已用完');
+            return;
+          }
+          
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'createEvent',
+                publisher: eventForm.value.publisher,
+                type: eventForm.value.type,
+                time: eventForm.value.time,
+                max: eventForm.value.max
+              })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+              alert('報名創建成功');
+              eventForm.value.time = '';
+              await fetchEvents();
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error('創建報名失敗:', error);
+            alert('創建報名失敗');
+          }
+        };
+        
+        // 加入報名
+        const joinEvent = async (event) => {
+          if (!currentUser.value) {
+            alert('請先登入');
+            return;
+          }
+          
+          if (currentUser.value.remainingAttempts <= 0) {
+            alert('您的挑戰次數已用完');
+            return;
+          }
+          
+          if (event.participants.includes(currentUser.value.name)) {
+            alert('您已經報名過此活動');
+            return;
+          }
+          
+          try {
+            const response = await fetch('你的Google Apps Script Web App URL', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'joinEvent',
+                publisher: event.publisher,
+                type: event.type,
+                time: event.time,
+                user: currentUser.value.name
+              })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+              alert('報名成功');
+              await fetchEvents();
+            } else {
+              alert(result.message);
+            }
+          } catch (error) {
+            console.error('報名失敗:', error);
+            alert('報名失敗');
+          }
+        };
+        
+        // 檢查是否可以報名
+        const canJoin = (event) => {
+          if (!currentUser.value) return false;
+          if (event.participants.includes(currentUser.value.name)) return false;
+          if (event.participants.length >= event.max) return false;
+          
+          const now = new Date();
+          const eventTime = new Date(event.time);
+          return now >= eventTime;
+        };
+        
+        // 格式化時間顯示
+        const formatTime = (timeStr) => {
+          const date = new Date(timeStr);
+          return date.toLocaleString('zh-TW', {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }).replace(/\//g, '-');
+        };
+        
+        // 格式化報名時間顯示
+        const formatJoinTime = (timeStr) => {
+          const date = new Date(timeStr);
+          return date.toLocaleTimeString('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          });
+        };
+        
+        // 初始化
+        onMounted(() => {
+          initDateTimePicker();
+          fetchUsers();
+          fetchEvents();
+        });
+        
+        return {
+          mushroomTypes,
+          users,
+          selectedUser,
+          newUserName,
+          currentUser,
+          eventForm,
+          events,
+          openEvents,
+          fullEvents,
+          loadUserInfo,
+          createNewUser,
+          updateUserAttempts,
+          createEvent,
+          fetchEvents,
+          joinEvent,
+          canJoin,
+          formatTime,
+          formatJoinTime
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
